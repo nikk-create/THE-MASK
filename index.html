@@ -6,6 +6,34 @@
 <title>The Mask - Bar & Restaurant</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- Firebase SDK - Realtime Database v12 -->
+<script type="module">
+import { initializeApp }                                          from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+import { getDatabase, ref, set, push, remove, update, onValue, get, off }
+                                                                  from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAdhxVua6X56OvbKgBh1siQP7Wratihlck",
+  authDomain:        "the-mask-bar.firebaseapp.com",
+  databaseURL:       "https://the-mask-bar-default-rtdb.firebaseio.com",
+  projectId:         "the-mask-bar",
+  storageBucket:     "the-mask-bar.firebasestorage.app",
+  messagingSenderId: "868298766218",
+  appId:             "1:868298766218:web:03cbf96a56b14179baba73",
+  measurementId:     "G-427RGVVGWB"
+};
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window.FS         = { db, ref, set, push, remove, update, onValue, get, off };
+  window._FB_CFG    = firebaseConfig;
+  window._fbReady   = true;
+  window.dispatchEvent(new Event('fb-ready'));
+} catch(e) {
+  console.error('Firebase init error:', e);
+}
+</script>
 <style>
 :root{--black:#080808;--dark:#0f0f0f;--card:#141414;--elevated:#1c1c1c;--border:#262626;--border-soft:#1e1e1e;--gold:#d4af37;--gold-l:#e8c84a;--gold-d:#a8891e;--gold-subtle:rgba(212,175,55,.07);--cream:#f2ede3;--cream-60:rgba(242,237,227,.6);--cream-30:rgba(242,237,227,.3);--ok:#2ecc71;--err:#e74c3c;--warn:#f39c12;--info:#5b9bd5;--r:10px;--r-sm:7px;--r-lg:18px;--shadow:0 12px 40px rgba(0,0,0,.7);--shadow-g:0 6px 24px rgba(212,175,55,.22);--trans:all .28s cubic-bezier(.4,0,.2,1)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -278,6 +306,17 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
 <body>
 
 <div class="toast-wrap" id="toasts"></div>
+
+<!-- ===== FIREBASE LOADING SCREEN ===== -->
+<div id="fb-scr" style="position:fixed;inset:0;z-index:1000;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem">
+  <div style="font-size:3.8rem;filter:drop-shadow(0 0 22px rgba(212,175,55,.6));animation:flt 2s ease-in-out infinite">&#127981;</div>
+  <div style="font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold);letter-spacing:.2em;font-weight:900">THE MASK</div>
+  <div style="font-size:.8rem;color:var(--cream-30);letter-spacing:.06em" id="fb-lbl-loading">Connexion &#224; Firebase&#8230;</div>
+  <div style="width:220px;height:3px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:.3rem">
+    <div id="fb-progress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold-d),var(--gold));transition:width .5s ease;border-radius:3px"></div>
+  </div>
+  <div id="fb-err-box" style="display:none;margin-top:.875rem;padding:.875rem 1.25rem;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);border-radius:var(--r-sm);color:var(--err);font-size:.8rem;max-width:360px;text-align:center;line-height:1.6"></div>
+</div>
 <button class="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
 
 <!-- LOGIN -->
@@ -315,6 +354,10 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
     <div class="sb-head">
       <div class="logo"><span class="logo-mask">&#127917;</span>THE MASK</div>
       <div class="logo-sub">Bar &amp; Restaurant</div>
+      <div id="db-status-pill" style="display:flex;align-items:center;gap:.4rem;margin-top:.6rem;font-size:.62rem;color:var(--cream-30)">
+        <span id="db-dot" style="width:7px;height:7px;border-radius:50%;background:var(--warn);flex-shrink:0"></span>
+        <span id="db-lbl">Local uniquement</span>
+      </div>
     </div>
     <nav class="sb-nav">
       <div id="admin-nav">
@@ -592,6 +635,111 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
 </div></div>
 
 <script>
+// =============================================
+// FIREBASE REALTIME DATABASE LAYER
+// =============================================
+let USE_FB = false;
+let FB_PROJECT = '';
+
+// Firebase auto-initialized via module script — no manual connect needed
+
+// Bootstrap: load from RTDB, or write defaults on first run
+async function bootstrapFromFirebase() {
+  const { db, ref, get, set } = window.FS;
+  toast('🔄 Synchronisation Firebase...', 'info');
+
+  const snap = await get(ref(db, '/'));
+  const data = snap.val() || {};
+
+  if (data.users)      { DB.users      = objToArr(data.users); }
+  else                 { await set(ref(db,'users'),      arrToObj(DB.users,'id')); }
+
+  if (data.categories) { DB.categories = objToArr(data.categories); }
+  else                 { await set(ref(db,'categories'), arrToObj(DB.categories,'id')); }
+
+  if (data.products)   { DB.products   = objToArr(data.products); }
+  else                 { await set(ref(db,'products'),   arrToObj(DB.products,'id')); }
+
+  if (data.sales) {
+    DB.sales = objToArr(data.sales).sort((a,b)=>b.id-a.id);
+    DB.nextSaleId = Math.max(...DB.sales.map(s=>s.id), 0) + 1;
+  } else { await set(ref(db,'sales'), arrToObj(DB.sales,'id')); }
+
+  if (data.expenses) {
+    DB.expenses = objToArr(data.expenses).sort((a,b)=>b.id-a.id);
+    DB.nextExpId = Math.max(...DB.expenses.map(e=>e.id), 0) + 1;
+  } else { await set(ref(db,'expenses'), arrToObj(DB.expenses,'id')); }
+
+  if (data.config) { Object.assign(CFG, data.config); }
+
+  toast('✅ Firebase synchronisé !', 'ok');
+}
+
+// Real-time listeners
+function startListeners() {
+  const { db, ref, onValue } = window.FS;
+
+  onValue(ref(db,'products'), snap => {
+    DB.products = snap.val() ? objToArr(snap.val()) : [];
+    if(S.currentPage==='products') renderProducts();
+    if(S.currentPage==='cashier')  renderProdGrid();
+  });
+  onValue(ref(db,'sales'), snap => {
+    DB.sales = snap.val() ? objToArr(snap.val()).sort((a,b)=>b.id-a.id) : [];
+    DB.nextSaleId = Math.max(...DB.sales.map(s=>s.id), 0) + 1;
+    if(S.currentPage==='history')   renderHistory();
+    if(S.currentPage==='dashboard') loadDashboard();
+  });
+  onValue(ref(db,'expenses'), snap => {
+    DB.expenses = snap.val() ? objToArr(snap.val()).sort((a,b)=>b.id-a.id) : [];
+    DB.nextExpId = Math.max(...DB.expenses.map(e=>e.id), 0) + 1;
+    if(S.currentPage==='expenses')  renderExpenses();
+    if(S.currentPage==='dashboard') loadDashboard();
+  });
+  onValue(ref(db,'categories'), snap => {
+    DB.categories = snap.val() ? objToArr(snap.val()) : [];
+    updateCatSelect();
+    if(S.currentPage==='settings') renderCatList();
+    if(S.currentPage==='cashier')  loadCashier();
+  });
+  onValue(ref(db,'users'), snap => {
+    DB.users = snap.val() ? objToArr(snap.val()) : [];
+    if(S.currentPage==='users') renderUsers();
+  });
+}
+
+// ── Helpers: convert RTDB objects <-> arrays ──────────────────────────────────
+function objToArr(obj) {
+  return Object.values(obj).filter(Boolean);
+}
+function arrToObj(arr, key='id') {
+  const o = {};
+  arr.forEach(item => { o[item[key]] = item; });
+  return o;
+}
+
+// ── RTDB CRUD helpers ─────────────────────────────────────────────────────────
+async function fbSet(path, id, data) {
+  if (!USE_FB) return;
+  const { db, ref, set } = window.FS;
+  const clean = JSON.parse(JSON.stringify(data));
+  await set(ref(db, path + '/' + id), clean);
+}
+async function fbDelete(path, id) {
+  if (!USE_FB) return;
+  const { db, ref, remove } = window.FS;
+  await remove(ref(db, path + '/' + id));
+}
+async function fbUpdate(path, id, fields) {
+  if (!USE_FB) return;
+  const { db, ref, update } = window.FS;
+  const clean = JSON.parse(JSON.stringify(fields));
+  await update(ref(db, path + '/' + id), clean);
+}
+
+// =============================================
+// LOCAL DB + DATES
+// =============================================
 const T=new Date();
 const today=T.toISOString().slice(0,10);
 const yesterday=new Date(T-864e5).toISOString().slice(0,10);
@@ -746,16 +894,17 @@ function renderCart(){
   c.innerHTML=S.cart.map(item=>{const sub=item.price*item.qty;total+=sub;return'<div class="cart-item"><div class="f1"><div class="ci-name">'+item.name+'</div><div class="ci-sub">'+fc(sub)+'</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="updateQty('+item.pid+',-1)">\u2212</button><span class="qty-v">'+item.qty+'</span><button class="qty-btn" onclick="updateQty('+item.pid+',1)">+</button></div></div>';}).join('');
   te.textContent=fc(total);ce.textContent=S.cart.reduce((a,c)=>a+c.qty,0);
 }
-function validateSale(){
+async function validateSale(){
   if(!S.cart.length){toast('Le panier est vide','er');return;}
   const method=document.getElementById('pay-method').value;
   const total=S.cart.reduce((a,c)=>a+(c.price*c.qty),0);
   const num='TM-'+String(DB.nextSaleId).padStart(3,'0');
   const items=S.cart.map(c=>({name:c.name,qty:c.qty,up:c.price,sub:c.price*c.qty}));
-  S.cart.forEach(c=>{const p=DB.products.find(x=>x.id===c.pid);if(p)p.stock=Math.max(0,p.stock-c.qty);});
+  for(const c of S.cart){const p=DB.products.find(x=>x.id===c.pid);if(p){p.stock=Math.max(0,p.stock-c.qty);await fbUpdate('products',p.id,{stock:p.stock});}}
   const sale={id:DB.nextSaleId++,num,cashier:S.user.id,total,method,date:today,items,time:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})};
   DB.sales.unshift(sale);
-  showTicket(sale);toast('Vente enregistr\u00E9e avec succ\u00E8s ! \u{1F389}','ok');S.cart=[];renderCart();renderProdGrid();
+  await fbSet('sales',sale.id,sale);
+  showTicket(sale);toast('Vente enregistr\u00E9e ! \U0001F389','ok');S.cart=[];renderCart();renderProdGrid();
 }
 function showTicket(sale){
   const u=DB.users.find(x=>x.id===sale.cashier);
@@ -811,19 +960,28 @@ function openProductModal(id=null){
 }
 function openProductModalCat(catId){openProductModal(null);setTimeout(()=>{document.getElementById('pm-cat').value=catId;},30);}
 function editProduct(id){openProductModal(id);}
-function saveProduct(){
+async function saveProduct(){
   const id=parseInt(document.getElementById('pm-id').value)||null;
   const name=document.getElementById('pm-name').value.trim();
   const cat=parseInt(document.getElementById('pm-cat').value);
   const price=parseFloat(document.getElementById('pm-price').value);
   const stock=parseInt(document.getElementById('pm-stock').value)||0;
-  const unit=document.getElementById('pm-unit').value.trim()||'unit\u00E9';
+  const unit=document.getElementById('pm-unit').value.trim()||'unité';
   if(!name||!cat||!price){toast('Veuillez remplir tous les champs obligatoires','er');return;}
-  if(id){const p=DB.products.find(x=>x.id===id);if(p){p.name=name;p.cat=cat;p.price=price;p.stock=stock;p.unit=unit;}toast('Produit mis \u00E0 jour','ok');}
-  else{DB.products.push({id:DB.nextProdId++,name,cat,price,stock,unit,active:true});toast('Produit cr\u00E9\u00E9','ok');}
+  if(id){
+    const p=DB.products.find(x=>x.id===id);
+    if(p){p.name=name;p.cat=cat;p.price=price;p.stock=stock;p.unit=unit;
+      await fbSet('products',id,p);}
+    toast('Produit mis à jour','ok');
+  } else {
+    const np={id:DB.nextProdId++,name,cat,price,stock,unit,active:true};
+    DB.products.push(np);
+    await fbSet('products',np.id,np);
+    toast('Produit créé','ok');
+  }
   closeM('m-product');renderProducts();
 }
-function delProduct(id){if(!confirm('Supprimer ce produit ?'))return;const i=DB.products.findIndex(p=>p.id===id);if(i!==-1)DB.products[i].active=false;toast('Produit supprim\u00E9','ok');renderProducts();}
+async function delProduct(id){if(!confirm('Supprimer ce produit ?'))return;const i=DB.products.findIndex(p=>p.id===id);if(i!==-1){DB.products[i].active=false;await fbUpdate('products',id,{active:false});}toast('Produit supprimé','ok');renderProducts();}
 
 function openExpModal(){document.getElementById('em-cat').value='';document.getElementById('em-desc').value='';document.getElementById('em-amount').value='';document.getElementById('em-date').value=today;openM('m-expense');}
 function renderExpenses(){
@@ -834,15 +992,17 @@ function renderExpenses(){
   if(!exps.length){tb.innerHTML='<tr><td colspan="6" class="tc tm" style="padding:2rem">Aucune d\u00E9pense ce jour</td></tr>';return;}
   tb.innerHTML=exps.map(e=>{const u=DB.users.find(x=>x.id===e.by);return'<tr><td>'+fd(e.date)+'</td><td><span class="badge bw">'+(EXP_CATS[e.cat]||e.cat)+'</span></td><td>'+e.desc+'</td><td class="ter fw7">'+fc(e.amount)+'</td><td class="tm" style="font-size:.8rem">'+(u?u.name:'\u2014')+'</td><td><button class="btn btn-danger btn-sm" onclick="delExpense('+e.id+')">\u{1F5D1}\uFE0F</button></td></tr>';}).join('');
 }
-function saveExpense(){
+async function saveExpense(){
   const cat=document.getElementById('em-cat').value,desc=document.getElementById('em-desc').value.trim();
   const amount=parseFloat(document.getElementById('em-amount').value),date=document.getElementById('em-date').value;
   if(!cat||!desc||!amount||!date){toast('Veuillez remplir tous les champs','er');return;}
-  DB.expenses.unshift({id:DB.nextExpId++,cat,desc,amount,date,by:S.user.id});
-  toast('D\u00E9pense enregistr\u00E9e','ok');closeM('m-expense');renderExpenses();
+  const exp={id:DB.nextExpId++,cat,desc,amount,date,by:S.user.id};
+  DB.expenses.unshift(exp);
+  await fbSet('expenses',exp.id,exp);
+  toast('Dépense enregistrée','ok');closeM('m-expense');renderExpenses();
   if(S.currentPage==='dashboard')loadDashboard();
 }
-function delExpense(id){if(!confirm('Supprimer cette d\u00E9pense ?'))return;DB.expenses=DB.expenses.filter(e=>e.id!==id);toast('D\u00E9pense supprim\u00E9e','ok');renderExpenses();}
+async function delExpense(id){if(!confirm('Supprimer cette dépense ?'))return;await fbDelete('expenses',id);DB.expenses=DB.expenses.filter(e=>e.id!==id);toast('Dépense supprimée','ok');renderExpenses();}
 
 function renderHistory(){
   const filter=document.getElementById('hist-filter').value||today;
@@ -864,15 +1024,17 @@ function renderUsers(){
   document.getElementById('users-tbody').innerHTML=DB.users.map(u=>'<tr><td class="tm">'+u.id+'</td><td><strong>'+u.name+'</strong></td><td class="tm">'+u.login+'</td><td><span class="badge '+(u.role==='admin'?'bg':'bi')+'">'+u.role+'</span></td><td><span class="badge '+(u.active?'bs':'be')+'">'+(u.active?'Actif':'Inactif')+'</span></td><td>'+(u.id!==S.user?.id?'<button class="btn btn-danger btn-sm" onclick="toggleUser('+u.id+')">'+(u.active?'D\u00E9sactiver':'R\u00E9activer')+'</button>':'<span class="tm" style="font-size:.78rem">Vous</span>')+'</td></tr>').join('');
 }
 function openUserModal(){document.getElementById('um-name').value='';document.getElementById('um-login').value='';document.getElementById('um-pwd').value='';document.getElementById('um-role').value='caissier';openM('m-user');}
-function saveUser(){
+async function saveUser(){
   const name=document.getElementById('um-name').value.trim(),login=document.getElementById('um-login').value.trim().toLowerCase();
   const pwd=document.getElementById('um-pwd').value,role=document.getElementById('um-role').value;
   if(!name||!login||!pwd){toast('Tous les champs sont requis','er');return;}
-  if(DB.users.find(u=>u.login===login)){toast('Ce login est d\u00E9j\u00E0 utilis\u00E9','er');return;}
-  DB.users.push({id:DB.nextUserId++,name,login,pwd,role,active:true});
-  toast('Utilisateur cr\u00E9\u00E9','ok');closeM('m-user');renderUsers();
+  if(DB.users.find(u=>u.login===login)){toast('Ce login est déjà utilisé','er');return;}
+  const nu={id:DB.nextUserId++,name,login,pwd,role,active:true};
+  DB.users.push(nu);
+  await fbSet('users',nu.id,nu);
+  toast('Utilisateur créé','ok');closeM('m-user');renderUsers();
 }
-function toggleUser(id){const u=DB.users.find(x=>x.id===id);if(u){u.active=!u.active;toast(u.active?'Utilisateur r\u00E9activ\u00E9':'Utilisateur d\u00E9sactiv\u00E9','ok');renderUsers();}}
+async function toggleUser(id){const u=DB.users.find(x=>x.id===id);if(u){u.active=!u.active;await fbUpdate('users',id,{active:u.active});toast(u.active?'Utilisateur réactivé':'Utilisateur désactivé','ok');renderUsers();}}
 
 // =============================================
 // SETTINGS & CONFIG
@@ -883,12 +1045,13 @@ const CFG = { name: 'The Mask', city: 'Cotonou', phone: '', currency: 'FCFA' };
 
 
 
-function saveConfig() {
+async function saveConfig() {
   CFG.name = document.getElementById('cfg-name').value.trim() || 'Mon Restaurant';
   CFG.city = document.getElementById('cfg-city').value.trim();
   CFG.phone = document.getElementById('cfg-phone').value.trim();
   CFG.currency = document.getElementById('cfg-currency').value;
   document.querySelector('.logo').innerHTML = '<span class="logo-mask">🎭</span>' + CFG.name.toUpperCase().slice(0,12);
+  await fbSet('config', 'main', {...CFG});
   toast('Configuration enregistrée ✓','ok');
 }
 
@@ -980,12 +1143,28 @@ function confirmReset() {
   openM('m-reset');
 }
 
-function doReset() {
+async function doReset() {
   const val = document.getElementById('reset-confirm-input').value.trim().toUpperCase();
   if (val !== 'RESET') { toast('Tapez RESET exactement pour confirmer','er'); return; }
-  DB.sales = [];
-  DB.expenses = [];
-  DB.products = [];
+  closeM('m-reset');
+  toast('⌛ Réinitialisation en cours...', 'info');
+  if (USE_FB) {
+    const { db, collection, getDocs, deleteDoc, doc: fbDoc } = window.FS;
+    for (const col of ['sales','expenses','products','categories']) {
+      const snap = await getDocs(collection(db, col));
+      for (const d of snap.docs) await deleteDoc(fbDoc(collection(db, col), d.id));
+    }
+    // Rewrite default categories
+    const defCats = [
+      {id:1,name:'Boissons',icon:'🥤'},
+      {id:2,name:'Nourriture',icon:'🍽️'},
+      {id:3,name:'Liqueurs & Alcools',icon:'🍾'},
+      {id:4,name:'VIP & Cocktails',icon:'🥂'},
+      {id:5,name:'Autres',icon:'✨'}
+    ];
+    for (const c of defCats) await fbSet('categories', c.id, c);
+  }
+  DB.sales = []; DB.expenses = []; DB.products = [];
   DB.categories = [
     {id:1,name:'Boissons',icon:'🥤'},
     {id:2,name:'Nourriture',icon:'🍽️'},
@@ -995,7 +1174,6 @@ function doReset() {
   ];
   DB.nextSaleId = 1; DB.nextProdId = 1; DB.nextExpId = 1;
   updateCatSelect();
-  closeM('m-reset');
   toast('🟢 Réinitialisé ! Saisissez maintenant vos vraies données.','ok');
   setTimeout(() => goTo('products'), 800);
 }
@@ -1099,16 +1277,62 @@ function saveCredentials(role) {
   document.getElementById('cred-' + role + '-pwd').value = '';
   document.getElementById('cred-' + role + '-pwd2').value = '';
 
+  await fbSet('users', user.id, user);
   toast('🔓 Identifiants ' + (role === 'admin' ? 'Admin' : 'Caissier') + ' enregistrés ! Utilisez-les à la prochaine connexion.', 'ok');
   renderCredRecap();
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('exp-filter').value=today;
-  document.getElementById('hist-filter').value=today;
-  document.getElementById('em-date').value=today;
-  document.getElementById('l-pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-  document.getElementById('l-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('exp-filter').value  = today;
+  document.getElementById('hist-filter').value = today;
+  document.getElementById('em-date').value     = today;
+  document.getElementById('l-pwd').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
+  document.getElementById('l-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+  // Firebase is already initialized via the module script above.
+  // Wait for the 'fb-ready' event (or check immediately if already fired).
+  function progress(pct, label) {
+    const p = document.getElementById('fb-progress');
+    const l = document.getElementById('fb-lbl-loading');
+    if(p) p.style.width = pct + '%';
+    if(l) l.textContent = label;
+  }
+
+  async function onFirebaseReady() {
+    try {
+      USE_FB     = true;
+      FB_PROJECT = window._FB_CFG.projectId;
+      progress(30, 'Firebase connecté — chargement des données…');
+      document.getElementById('db-dot').style.background  = 'var(--ok)';
+      document.getElementById('db-lbl').textContent       = 'Firebase connecté';
+      await bootstrapFromFirebase();
+      progress(90, 'Activation des listeners temps réel…');
+      startListeners();
+      progress(100, 'Prêt !');
+      setTimeout(() => {
+        document.getElementById('fb-scr').style.display = 'none';
+      }, 350);
+    } catch(e) {
+      const errBox = document.getElementById('fb-err-box');
+      if(errBox) { errBox.style.display='block'; errBox.textContent = '❌ ' + (e.message||e); }
+      progress(0, 'Erreur de connexion');
+    }
+  }
+
+  if (window._fbReady) {
+    onFirebaseReady();
+  } else {
+    progress(10, 'Initialisation Firebase…');
+    window.addEventListener('fb-ready', onFirebaseReady, { once: true });
+    // Fallback timeout
+    setTimeout(() => {
+      if (!USE_FB) {
+        const errBox = document.getElementById('fb-err-box');
+        if(errBox) { errBox.style.display='block'; errBox.textContent = '⚠️ Délai dépassé. Vérifiez votre connexion internet.'; }
+        progress(0, 'Erreur de connexion');
+      }
+    }, 10000);
+  }
 });
 </script>
 </body>
