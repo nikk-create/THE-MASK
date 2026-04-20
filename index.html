@@ -596,17 +596,69 @@ input:checked + .toggle-slider:before{transform:translateX(17px)}
       <div class="pg-head">
         <div><h1 class="pg-title">Param&#232;tres</h1><div class="pg-sub">Configuration du restaurant &#8212; donn&#233;es r&#233;elles</div></div>
       </div>
-      <!-- PWA Install Banner -->
-      <div id="pwa-banner" style="display:none;margin-bottom:1.5rem;padding:1.1rem 1.4rem;background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.03));border:1px solid rgba(212,175,55,.25);border-radius:var(--r);display:none;align-items:center;gap:1rem;flex-wrap:wrap">
-        <div style="font-size:2rem">&#128247;</div>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:.95rem;color:var(--gold)">Installer l'application</div>
-          <div style="font-size:.8rem;color:var(--cream-60);margin-top:.2rem">Accédez à The Mask depuis votre écran d'accueil, même sans internet.</div>
+      <!-- PWA Install Section — toujours visible -->
+      <div class="card mb2" style="padding:1.4rem;border-color:rgba(212,175,55,.2)" id="pwa-section">
+        <div class="card-title">&#128247; Installer l'Application</div>
+
+        <!-- État : déjà installée -->
+        <div id="pwa-installed-msg" style="display:none;padding:.875rem 1.1rem;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:var(--r-sm);font-size:.85rem;color:var(--ok);margin-bottom:1rem">
+          &#10003; The Mask est d&#233;j&#224; install&#233;e sur cet appareil !
         </div>
-        <button class="btn btn-gold" id="pwa-install-btn" onclick="installPWA()">&#11015;&#65039; Installer sur cet appareil</button>
-        <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:none;border:none;color:var(--cream-30);font-size:1.1rem;cursor:pointer">&#10005;</button>
+
+        <!-- Description -->
+        <p style="font-size:.85rem;color:var(--cream-60);line-height:1.7;margin-bottom:1.25rem">
+          Installez The Mask comme une vraie application — acc&#232;s depuis l'&#233;cran d'accueil, fonctionne hors ligne, pas besoin de navigateur.
+        </p>
+
+        <!-- Bouton principal (Chrome/Edge PC + Android) -->
+        <div id="pwa-btn-wrap" style="margin-bottom:1.25rem">
+          <button class="btn btn-gold btn-lg" id="pwa-install-btn" onclick="installPWA()" style="width:100%;justify-content:center">
+            &#11015;&#65039; Installer sur cet appareil
+          </button>
+          <div id="pwa-btn-hint" style="font-size:.72rem;color:var(--cream-30);margin-top:.5rem;text-align:center"></div>
+        </div>
+
+        <!-- Instructions manuelles selon navigateur -->
+        <div id="pwa-manual" style="display:none">
+          <div style="font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-30);margin-bottom:.875rem">
+            Ou suivez ces &#233;tapes manuellement
+          </div>
+          <!-- Chrome/Edge PC -->
+          <div id="pwa-chrome-pc" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">1</span>
+                <span style="font-size:.85rem">Dans Chrome/Edge, cliquez sur l'ic&#244;ne <strong style="color:var(--gold)">&#10010;</strong> ou <strong style="color:var(--gold)">&#8942;</strong> dans la barre d'adresse</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">2</span>
+                <span style="font-size:.85rem">Cliquez sur <strong style="color:var(--gold)">"Installer The Mask"</strong> ou <strong style="color:var(--gold)">"Ajouter \u00e0 l'&#233;cran d'accueil"</strong></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">3</span>
+                <span style="font-size:.85rem">Confirmez l'installation — l'app apparaît dans vos programmes</span>
+              </div>
+            </div>
+          </div>
+          <!-- Safari iPhone -->
+          <div id="pwa-safari-ios" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:.6rem">
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">1</span>
+                <span style="font-size:.85rem">Appuyez sur le bouton <strong style="color:var(--gold)">Partager &#128279;</strong> en bas de Safari</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">2</span>
+                <span style="font-size:.85rem">D&#233;filez et appuyez sur <strong style="color:var(--gold)">"Sur l'&#233;cran d'accueil"</strong></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.875rem;padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--gold);flex-shrink:0">3</span>
+                <span style="font-size:.85rem">Appuyez sur <strong style="color:var(--gold)">"Ajouter"</strong> en haut \u00e0 droite</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="pwa-installed-msg" style="display:none;margin-bottom:1.5rem;padding:1rem 1.4rem;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2);border-radius:var(--r);font-size:.85rem;color:var(--ok)">&#10003; Application installée ! Retrouvez The Mask dans vos applications.</div>
 
       <!-- Restaurant info -->
       <div class="settings-grid settings-admin-only">
@@ -1866,43 +1918,100 @@ async function saveUser(){
   renderUsers();
 }
 
-// ═══ PWA INSTALL ══════════════
+// ═══ PWA INSTALL ══════════════════════════════════════════════
 let _deferredInstall = null;
-window.addEventListener("beforeinstallprompt", e => {
+
+// Detect browser/OS
+function _detectBrowser() {
+  const ua = navigator.userAgent;
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isChrome = /chrome/i.test(ua) && !/edge/i.test(ua);
+  const isEdge = /edg\//i.test(ua);
+  const isFirefox = /firefox/i.test(ua);
+  const isAndroid = /android/i.test(ua);
+  return { isIOS, isSafari, isChrome, isEdge, isFirefox, isAndroid };
+}
+
+window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   _deferredInstall = e;
-  // Show banner if user is on settings page
-  const banner = document.getElementById("pwa-banner");
-  if (banner) banner.style.display = "flex";
+  checkPWABanner();
 });
-window.addEventListener("appinstalled", () => {
+
+window.addEventListener('appinstalled', () => {
   _deferredInstall = null;
-  const banner = document.getElementById("pwa-banner");
-  const msg    = document.getElementById("pwa-installed-msg");
-  if (banner) banner.style.display = "none";
-  if (msg)    msg.style.display    = "block";
-  toast("🎭 The Mask installée sur votre appareil !", "ok");
+  const msg = document.getElementById('pwa-installed-msg');
+  const btn = document.getElementById('pwa-btn-wrap');
+  const man = document.getElementById('pwa-manual');
+  if (msg) msg.style.display = 'block';
+  if (btn) btn.style.display = 'none';
+  if (man) man.style.display = 'none';
+  toast('\U0001f3ad The Mask install\u00e9e sur votre appareil !', 'ok');
 });
+
 function installPWA() {
-  if (!_deferredInstall) {
-    toast("Utilisez le bouton ⊕ de votre navigateur pour installer", "info"); return;
+  if (_deferredInstall) {
+    _deferredInstall.prompt();
+    _deferredInstall.userChoice.then(r => {
+      if (r.outcome === 'accepted') toast('\U0001f389 Installation r\u00e9ussie !', 'ok');
+      _deferredInstall = null;
+      checkPWABanner();
+    });
+  } else {
+    // No prompt available — show manual instructions
+    const man = document.getElementById('pwa-manual');
+    if (man) man.style.display = 'block';
+    checkPWABanner();
+    toast('Suivez les instructions affich\u00e9es ci-dessous', 'info');
   }
-  _deferredInstall.prompt();
-  _deferredInstall.userChoice.then(r => {
-    if (r.outcome === "accepted") toast("🎉 Installation réussie !", "ok");
-    _deferredInstall = null;
-  });
 }
+
 function checkPWABanner() {
-  const banner = document.getElementById("pwa-banner");
-  const msg    = document.getElementById("pwa-installed-msg");
-  if (!banner) return;
-  // Already installed ?
-  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
-    if (banner) banner.style.display = "none";
-    if (msg)    msg.style.display    = "block";
-  } else if (_deferredInstall) {
-    banner.style.display = "flex";
+  const installedMsg = document.getElementById('pwa-installed-msg');
+  const btnWrap      = document.getElementById('pwa-btn-wrap');
+  const btnHint      = document.getElementById('pwa-btn-hint');
+  const manualDiv    = document.getElementById('pwa-manual');
+  const chromePc     = document.getElementById('pwa-chrome-pc');
+  const safariIos    = document.getElementById('pwa-safari-ios');
+  if (!btnWrap) return;
+
+  const b = _detectBrowser();
+
+  // Already running as installed PWA
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (isInstalled) {
+    if (installedMsg) installedMsg.style.display = 'block';
+    if (btnWrap)      btnWrap.style.display      = 'none';
+    if (manualDiv)    manualDiv.style.display     = 'none';
+    return;
+  }
+
+  // iOS Safari — no beforeinstallprompt, must show manual steps
+  if (b.isIOS) {
+    if (btnWrap)   btnWrap.style.display   = 'none';
+    if (manualDiv) manualDiv.style.display = 'block';
+    if (safariIos) safariIos.style.display = 'block';
+    if (chromePc)  chromePc.style.display  = 'none';
+    return;
+  }
+
+  // Chrome / Edge — beforeinstallprompt available
+  if (_deferredInstall) {
+    if (btnWrap)  btnWrap.style.display  = 'block';
+    if (btnHint)  btnHint.textContent    = 'Compatible avec Chrome, Edge et les navigateurs Android';
+    if (manualDiv) manualDiv.style.display = 'none';
+    return;
+  }
+
+  // No prompt yet (Firefox, or already dismissed) — show manual guide
+  if (btnWrap && btnHint) {
+    btnHint.textContent = 'Cliquez pour voir les instructions d\'installation';
+  }
+  if (manualDiv) {
+    manualDiv.style.display = 'block';
+    if (chromePc)  chromePc.style.display  = 'block';
+    if (safariIos) safariIos.style.display = 'none';
   }
 }
 
