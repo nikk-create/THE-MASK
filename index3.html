@@ -254,6 +254,23 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
 .div{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:1.25rem 0}
 .empty-state{text-align:center;padding:2.5rem;color:var(--cream-30)}
 .empty-state .ei{font-size:2.5rem;opacity:.3;margin-bottom:.75rem}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;max-width:260px;margin:0 auto}
+.pin-key{height:62px;border-radius:var(--r);border:1px solid var(--border);background:var(--card);color:var(--cream);font-size:1.5rem;font-weight:600;transition:var(--trans)}
+.pin-key:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-subtle)}
+.pin-key:active{transform:scale(.95)}
+.pin-clear{font-size:1.1rem;color:var(--warn)}
+.pin-ok{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--black);border-color:var(--gold)}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:var(--trans)}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold)}
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.perm-item{display:flex;align-items:center;justify-content:space-between;padding:.6rem .875rem;background:var(--elevated);border-radius:var(--r-sm);border:1px solid var(--border-soft)}
+.perm-lbl{font-size:.8rem;font-weight:600}
+.toggle-sw{position:relative;width:38px;height:21px;cursor:pointer;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:21px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;height:15px;width:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+input:checked + .toggle-slider{background:var(--gold)}
+input:checked + .toggle-slider:before{transform:translateX(17px)}
 .mob-toggle{display:none;position:fixed;top:.875rem;left:.875rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;color:var(--gold);font-size:1.2rem}
 
 /* RESPONSIVE */
@@ -320,6 +337,22 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
 </div>
 <button class="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776;</button>
 
+<!-- PIN SCREEN -->
+<div id="pin-scr" style="position:fixed;inset:0;z-index:799;background:var(--black);display:none;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;gap:1rem">
+  <div style="width:100%;max-width:300px;text-align:center">
+    <div style="font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold);margin-bottom:.2rem" id="pin-username"></div>
+    <div style="font-size:.75rem;color:var(--cream-30);margin-bottom:1.5rem">Entrez votre PIN</div>
+    <div id="pin-dots" style="display:flex;justify-content:center;gap:.875rem;margin-bottom:1.5rem"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button><button class="pin-key" onclick="pinKey('2')">2</button><button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button><button class="pin-key" onclick="pinKey('5')">5</button><button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button><button class="pin-key" onclick="pinKey('8')">8</button><button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key pin-clear" onclick="pinClear()">&#8592;</button><button class="pin-key" onclick="pinKey('0')">0</button><button class="pin-key pin-ok" onclick="pinSubmit()">OK</button>
+    </div>
+    <button onclick="showLoginScr()" style="margin-top:1.25rem;background:none;border:none;color:var(--cream-30);font-size:.78rem;cursor:pointer;text-decoration:underline">Connexion par mot de passe</button>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="login-scr">
   <div class="login-box">
@@ -369,13 +402,15 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
         <div class="nav-item" data-pg="dashboard" onclick="goTo('dashboard')"><span class="ni">&#128202;</span> Tableau de Bord</div>
         <div class="nav-item" data-pg="products" onclick="goTo('products')"><span class="ni">&#128230;</span> Produits</div>
         <div class="nav-item" data-pg="expenses" onclick="goTo('expenses')"><span class="ni">&#128184;</span> D&#233;penses</div>
-        <div class="nav-item" data-pg="history" onclick="goTo('history')"><span class="ni">&#128203;</span> Historique</div>
+        <div class="nav-item" data-pg="history" id="nav-history" onclick="goTo('history')"><span class="ni">&#128203;</span> Historique</div>
         <div class="nav-item" data-pg="stock" onclick="goTo('stock')" id="nav-stock"><span class="ni">&#128230;</span> Stock <span id="stock-alert-badge" style="display:none;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:20px;margin-left:.3rem">0</span></div>
         <div class="nav-item" data-pg="users" onclick="goTo('users')"><span class="ni">&#128100;</span> Utilisateurs</div>
-        <div class="nav-item" data-pg="settings" onclick="goTo('settings')"><span class="ni">&#9881;&#65039;</span> Param&#232;tres</div>
       </div>
+      <div id="extra-nav"></div>
       <div class="nav-lbl">Caisse</div>
       <div class="nav-item" data-pg="cashier" onclick="goTo('cashier')"><span class="ni">&#128176;</span> Interface Caisse</div>
+      <div class="nav-lbl">Compte</div>
+      <div class="nav-item" data-pg="settings" onclick="goTo('settings')"><span class="ni">&#9881;&#65039;</span> Param&#232;tres</div>
     </nav>
     <div class="sb-foot">
       <div class="user-pill">
@@ -490,7 +525,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
     <!-- USERS -->
     <div id="pg-users" class="page">
       <div class="pg-head"><div><h1 class="pg-title">Utilisateurs</h1><div class="pg-sub">Comptes administrateur et caissier</div></div><button class="btn btn-gold" onclick="openUserModal()">+ Nouvel Utilisateur</button></div>
-      <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Nom</th><th>Login</th><th>R&#244;le</th><th>Statut</th><th>Action</th></tr></thead><tbody id="users-tbody"></tbody></table></div>
+      <div id="users-cards"></div>
     </div>
     <!-- SETTINGS -->
     <div id="pg-settings" class="page">
@@ -499,7 +534,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
       </div>
 
       <!-- Restaurant info -->
-      <div class="settings-grid">
+      <div class="settings-grid settings-admin-only">
         <div class="card" style="padding:1.6rem">
           <div class="card-title">&#127981; Informations du Restaurant</div>
           <div class="form-row">
@@ -528,7 +563,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
       </div>
 
       <!-- Categories management -->
-      <div class="card mt2" style="padding:1.6rem">
+      <div class="card mt2 settings-admin-only" style="padding:1.6rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
           <div class="card-title" style="margin:0">&#127991; Gestion des Cat&#233;gories</div>
           <button class="btn btn-gold btn-sm" onclick="openCatModal()">+ Nouvelle Cat&#233;gorie</button>
@@ -580,6 +615,17 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
             </div>
             <button class="btn btn-gold btn-block" onclick="saveCredentials('caissier')">&#128274; Enregistrer identifiants Caissier</button>
           </div>
+        </div>
+
+        <!-- PIN section -->
+        <div class="card" style="padding:1.25rem;margin-top:1.25rem;background:var(--elevated);border:1px solid var(--border)">
+          <div class="card-title">🔑 Mon PIN Rapide (4 chiffres)</div>
+          <p style="font-size:.8rem;color:var(--cream-60);margin-bottom:1rem;line-height:1.6">Connectez-vous rapidement sans mot de passe complet.</p>
+          <div class="form-row">
+            <div class="form-group"><label class="form-lbl">Nouveau PIN</label><div class="pwd-wrap"><input type="password" id="my-pin" class="form-ctrl" placeholder="4 chiffres" maxlength="4" inputmode="numeric"/><button class="eye-btn" onclick="togglePwd('my-pin',this)">👁</button></div></div>
+            <div class="form-group"><label class="form-lbl">Confirmer PIN</label><div class="pwd-wrap"><input type="password" id="my-pin2" class="form-ctrl" placeholder="Répétez" maxlength="4" inputmode="numeric"/><button class="eye-btn" onclick="togglePwd('my-pin2',this)">👁</button></div></div>
+          </div>
+          <button class="btn btn-gold" onclick="saveMyPin()">🔑 Enregistrer mon PIN</button>
         </div>
 
         <!-- Recap of current credentials -->
@@ -845,8 +891,8 @@ const yesterday=new Date(T-864e5).toISOString().slice(0,10);
 
 const DB={
   users:[
-    {id:1,name:'Administrateur',login:'admin',pwd:'1234',role:'admin',active:true},
-    {id:2,name:'Caissier Principal',login:'caissier',pwd:'1234',role:'caissier',active:true}
+    {id:1,name:'Administrateur',login:'admin',pwd:'1234',pin:'',role:'admin',active:true,perms:{history:true,stock:true,expenses:true,products:true,avoir:true,restock:true,export:true}},
+    {id:2,name:'Caissier Principal',login:'caissier',pwd:'1234',pin:'',role:'caissier',active:true,perms:{history:false,stock:false,expenses:false,products:false,avoir:false,restock:false,export:false}}
   ],
   categories:[
     {id:1,name:'Boissons',icon:'\u{1F964}'},
@@ -916,15 +962,59 @@ function doLogin(){
   const pwd=document.getElementById('l-pwd').value;
   const user=DB.users.find(u=>u.login===raw||u.login===raw.split('@')[0]);
   if(!user||user.pwd!==pwd){toast('Identifiants incorrects','er');return;}
+  loginSuccess(user);
+}
+function showLoginScr(){
+  document.getElementById('pin-scr').style.display='none';
+  document.getElementById('login-scr').classList.remove('hidden');
+}
+let _pinBuffer='',_pinUser=null;
+function showPinScr(user){
+  _pinUser=user;_pinBuffer='';
+  document.getElementById('pin-username').textContent=user.name;
+  updatePinDots();
+  document.getElementById('login-scr').classList.add('hidden');
+  document.getElementById('pin-scr').style.display='flex';
+}
+function pinKey(k){if(_pinBuffer.length>=4)return;_pinBuffer+=k;updatePinDots();if(_pinBuffer.length===4)setTimeout(pinSubmit,150);}
+function pinClear(){_pinBuffer=_pinBuffer.slice(0,-1);updatePinDots();}
+function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<_pinBuffer.length));}
+function pinSubmit(){
+  if(!_pinUser)return;
+  if(_pinUser.pin&&_pinBuffer===_pinUser.pin){
+    document.getElementById('pin-scr').style.display='none';
+    loginSuccess(_pinUser);
+  }else{toast('PIN incorrect','er');_pinBuffer='';updatePinDots();}
+}
+function loginSuccess(user){
   S.user=user;
   document.getElementById('login-scr').classList.add('hidden');
+  document.getElementById('pin-scr').style.display='none';
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('u-name').textContent=user.name;
   document.getElementById('u-role').textContent=user.role==='admin'?'Administrateur':'Caissier';
-  if(user.role!=='admin'){document.getElementById('admin-nav').classList.add('hidden');goTo('cashier');}
-  else{document.getElementById('admin-nav').classList.remove('hidden');goTo('dashboard');}
-  toast('Bienvenue, '+user.name+' ! \u{1F3AD}','ok');
+  const isAdmin=user.role==='admin';
+  const p=user.perms||{};
+  document.getElementById('admin-nav').classList.toggle('hidden',!isAdmin);
+  // Extra nav for non-admin with perms
+  const extraNav=document.getElementById('extra-nav');
+  if(!isAdmin&&extraNav){
+    let h='';
+    if(p.history||p.stock||p.expenses||p.products) h+='<div class="nav-lbl">Accès autorisés</div>';
+    if(p.history)  h+='<div class="nav-item" data-pg="history" onclick="goTo(\'history\')"><span class="ni">📋</span> Historique</div>';
+    if(p.stock)    h+='<div class="nav-item" data-pg="stock" onclick="goTo(\'stock\')"><span class="ni">📦</span> Stock<span id="stock-alert-badge" style="display:none;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:20px;margin-left:.3rem">0</span></div>';
+    if(p.expenses) h+='<div class="nav-item" data-pg="expenses" onclick="goTo(\'expenses\')"><span class="ni">💸</span> Dépenses</div>';
+    extraNav.innerHTML=h;
+  } else if(extraNav) extraNav.innerHTML='';
+  // Export PDF btn
+  const expBtn=document.getElementById('btn-export-pdf');
+  if(expBtn) expBtn.style.display=(isAdmin||(p&&p.export))?'':'none';
+  requestNotifPermission();
+  updateStockAlertBadge();
+  goTo(isAdmin?'dashboard':'cashier');
+  toast('Bienvenue, '+user.name+' ! 🎭','ok');
 }
+
 function doLogout(){S.user=null;S.cart=[];document.getElementById('app').classList.add('hidden');document.getElementById('login-scr').classList.remove('hidden');}
 
 function goTo(pg){
@@ -1145,19 +1235,54 @@ function viewSale(id){
 }
 
 function renderUsers(){
-  document.getElementById('users-tbody').innerHTML=DB.users.map(u=>'<tr><td class="tm">'+u.id+'</td><td><strong>'+u.name+'</strong></td><td class="tm">'+u.login+'</td><td><span class="badge '+(u.role==='admin'?'bg':'bi')+'">'+u.role+'</span></td><td><span class="badge '+(u.active?'bs':'be')+'">'+(u.active?'Actif':'Inactif')+'</span></td><td>'+(u.id!==S.user?.id?'<button class="btn btn-danger btn-sm" onclick="toggleUser('+u.id+')">'+(u.active?'D\u00E9sactiver':'R\u00E9activer')+'</button>':'<span class="tm" style="font-size:.78rem">Vous</span>')+'</td></tr>').join('');
+  const PERMS={history:'Historique',stock:'Stock',expenses:'D\u00e9penses',products:'Produits',avoir:'Avoirs',restock:'R\u00e9appro',export:'Export PDF'};
+  const cards=document.getElementById('users-cards');
+  if(!cards)return;
+  cards.innerHTML=DB.users.map(u=>{
+    const isMe=u.id===S.user?.id;
+    const isAdmin=u.role==='admin';
+    const p=u.perms||{};
+    const permSection=isAdmin
+      ?'<div style="font-size:.75rem;color:var(--gold);padding:.6rem .875rem;background:var(--gold-subtle);border-radius:var(--r-sm)">Acc\u00e8s complet \u2014 administrateur</div>'
+      :'<div class="perm-grid">'+Object.entries(PERMS).map(([k,lbl])=>
+          '<div class="perm-item"><span class="perm-lbl">'+lbl+'</span>'+
+          '<label class="toggle-sw"><input type="checkbox" '+(p[k]?'checked':'')+
+          (isMe?' disabled':' onchange="togglePerm('+u.id+',\''+k+'\',this.checked)"')+'/>'+
+          '<span class="toggle-slider"></span></label></div>'
+        ).join('')+'</div>';
+    const pinStatus=u.pin
+      ?'<span class="badge bs" style="font-size:.65rem">PIN \u2713</span>'
+      :'<span class="badge bw" style="font-size:.65rem">Sans PIN</span>';
+    return '<div class="card mb2" style="padding:1.4rem">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.875rem;margin-bottom:1rem">'+
+        '<div style="display:flex;align-items:center;gap:.875rem">'+
+          '<div style="width:44px;height:44px;border-radius:50%;background:var(--gold-subtle);border:1px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;font-size:1.2rem">'+(isAdmin?'\U0001f451':'\U0001f464')+'</div>'+
+          '<div>'+
+            '<div style="font-weight:700;font-size:.95rem">'+u.name+(isMe?' <span style="font-size:.7rem;color:var(--cream-30)">(vous)</span>':'')+'</div>'+
+            '<div style="display:flex;gap:.4rem;margin-top:.25rem;flex-wrap:wrap">'+
+              '<span class="badge '+(isAdmin?'bg':'bi')+'">'+u.role+'</span>'+
+              '<span class="badge '+(u.active?'bs':'be')+'">'+(u.active?'Actif':'Inactif')+'</span>'+
+              pinStatus+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        (!isMe?'<button class="btn btn-ghost btn-sm" onclick="toggleUser('+u.id+')">'+(u.active?'D\u00e9sactiver':'R\u00e9activer')+'</button>':'')+
+      '</div>'+
+      '<div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-30);margin-bottom:.75rem;font-family:\'Cinzel\',serif">Permissions</div>'+
+      permSection+
+    '</div>';
+  }).join('');
 }
-function openUserModal(){document.getElementById('um-name').value='';document.getElementById('um-login').value='';document.getElementById('um-pwd').value='';document.getElementById('um-role').value='caissier';openM('m-user');}
-async function saveUser(){
-  const name=document.getElementById('um-name').value.trim(),login=document.getElementById('um-login').value.trim().toLowerCase();
-  const pwd=document.getElementById('um-pwd').value,role=document.getElementById('um-role').value;
-  if(!name||!login||!pwd){toast('Tous les champs sont requis','er');return;}
-  if(DB.users.find(u=>u.login===login)){toast('Ce login est déjà utilisé','er');return;}
-  const nu={id:DB.nextUserId++,name,login,pwd,role,active:true};
-  DB.users.push(nu);
-  await fbSet('users',nu.id,nu);
-  toast('Utilisateur créé','ok');closeM('m-user');renderUsers();
+
+async function togglePerm(userId,perm,val){
+  const u=DB.users.find(x=>x.id===userId);if(!u)return;
+  if(!u.perms)u.perms={};
+  u.perms[perm]=val;
+  await fbUpdate('users',userId,{perms:u.perms});
+  toast((val?'\u2705 ':'\u274c ')+u.name+' \u2014 '+perm+' '+(val?'autoris\u00e9':'retir\u00e9'),'ok');
 }
+
+
 async function toggleUser(id){const u=DB.users.find(x=>x.id===id);if(u){u.active=!u.active;await fbUpdate('users',id,{active:u.active});toast(u.active?'Utilisateur réactivé':'Utilisateur désactivé','ok');renderUsers();}}
 
 // =============================================
@@ -1306,6 +1431,8 @@ async function doReset() {
 // CREDENTIALS MANAGEMENT
 // =============================================
 function loadSettings() {
+  const isAdmin=S.user&&S.user.role==='admin';
+  document.querySelectorAll('.settings-admin-only').forEach(el=>el.style.display=isAdmin?'':'none');
   document.getElementById('cfg-name').value = CFG.name;
   document.getElementById('cfg-city').value = CFG.city;
   document.getElementById('cfg-phone').value = CFG.phone;
@@ -1402,7 +1529,20 @@ async function saveCredentials(role) {
   document.getElementById('cred-' + role + '-pwd2').value = '';
 
   await fbSet('users', user.id, user);
-  toast('🔓 Identifiants ' + (role === 'admin' ? 'Admin' : 'Caissier') + ' enregistrés ! Utilisez-les à la prochaine connexion.', 'ok');
+  toast('\U0001f513 Identifiants enregistr\u00e9s ! Utilisez-les \u00e0 la prochaine connexion.', 'ok');
+  renderCredRecap();
+}
+
+async function saveMyPin(){
+  const pin=document.getElementById('my-pin').value.trim();
+  const pin2=document.getElementById('my-pin2').value.trim();
+  if(!pin||pin.length!==4||!/^\d{4}$/.test(pin)){toast('Le PIN doit \u00eatre 4 chiffres exactement','er');return;}
+  if(pin!==pin2){toast('Les PINs ne correspondent pas','er');return;}
+  const u=DB.users.find(x=>x.id===S.user.id);
+  if(u){u.pin=pin;S.user.pin=pin;await fbUpdate('users',u.id,{pin});}
+  document.getElementById('my-pin').value='';
+  document.getElementById('my-pin2').value='';
+  toast('\U0001f511 PIN enregistr\u00e9 ! Utilisez-le \u00e0 la prochaine connexion.','ok');
   renderCredRecap();
 }
 
@@ -1626,6 +1766,54 @@ function updateStockAlertBadge(){
   }
 }
 
+
+function exportPDF(){
+  const filter=document.getElementById('hist-filter').value||today;
+  const sales=DB.sales.filter(s=>s.date===filter);
+  const avoirs=DB.avoirs.filter(a=>a.date===filter);
+  const allTxn=[...sales,...avoirs].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const totalVentes=sales.reduce((a,s)=>a+s.total,0);
+  const totalAvoirs=avoirs.reduce((a,s)=>a+Math.abs(s.total),0);
+  const netTotal=totalVentes-totalAvoirs;
+  const topProds={};
+  sales.forEach(s=>s.items.forEach(i=>{if(!topProds[i.name])topProds[i.name]={qty:0,rev:0};topProds[i.name].qty+=i.qty;topProds[i.name].rev+=i.sub;}));
+  const top5=Object.entries(topProds).sort((a,b)=>b[1].rev-a[1].rev).slice(0,5);
+  const dateStr=new Date(filter+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const rows=allTxn.map(s=>{
+    const u=DB.users.find(x=>x.id===s.cashier);
+    const isAvoir=s.type==='avoir';
+    return '<tr style="background:'+(isAvoir?'#fff5f5':'')+'">'+'<td>'+s.num+'</td><td>'+(s.time||'-')+'</td><td>'+(u?u.name:'-')+'</td>'+
+      '<td style="text-align:right;font-weight:bold;color:'+(isAvoir?'#c0392b':'#1a7a42')+'">'+(isAvoir?'- ':'')+fc(Math.abs(s.total))+'</td>'+
+      '<td>'+(PAY[s.method]||s.method)+'</td><td>'+(isAvoir?'Avoir':'Vente')+'</td></tr>';
+  }).join('');
+  const topRows=top5.map(([n,d],i)=>'<tr><td>'+(i+1)+'.</td><td>'+n+'</td><td>'+d.qty+' vendus</td><td style="text-align:right;font-weight:bold">'+fc(d.rev)+'</td></tr>').join('');
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Rapport '+filter+'</title>'
+    +'<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#222;padding:2rem;max-width:800px;margin:0 auto}'
+    +'table{width:100%;border-collapse:collapse;margin:1rem 0}th{background:#f5f5f0;padding:.55rem .875rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #ddd}'
+    +'td{padding:.5rem .875rem;border-bottom:1px solid #eee;font-size:.87rem}'
+    +'.tot{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;background:#fafaf5;border:2px solid #d4af37;border-radius:8px;padding:1rem 1.5rem;margin:1.5rem 0}'
+    +'.tot-lbl{font-size:.68rem;color:#888;text-transform:uppercase}.tot-val{font-size:1.25rem;font-weight:bold;margin-top:.2rem}'
+    +'@media print{button{display:none}}</style></head><body>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem">'
+    +'<div><div style="font-family:serif;font-size:1.6rem;color:#d4af37;font-weight:bold;letter-spacing:.12em">🎭 '+CFG.name.toUpperCase()+'</div>'
+    +'<div style="color:#888;font-size:.82rem">'+CFG.city+(CFG.phone?' &bull; '+CFG.phone:'')+'</div></div>'
+    +'<div style="text-align:right"><div style="font-size:.8rem;color:#888">Rapport journalier</div><div style="font-weight:bold">'+dateStr+'</div>'
+    +'<div style="font-size:.72rem;color:#aaa">Généré par '+(S.user?S.user.name:'-')+' à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'
+    +'<div class="tot">'
+    +'<div><div class="tot-lbl">Total Ventes</div><div class="tot-val" style="color:#1a7a42">'+fc(totalVentes)+'</div></div>'
+    +'<div><div class="tot-lbl">Avoirs</div><div class="tot-val" style="color:#c0392b">- '+fc(totalAvoirs)+'</div></div>'
+    +'<div><div class="tot-lbl">Net du jour</div><div class="tot-val" style="color:#d4af37">'+fc(netTotal)+'</div></div>'
+    +'</div>'
+    +'<h2 style="font-size:.95rem;margin-top:1.5rem">Transactions ('+allTxn.length+')</h2>'
+    +'<table><thead><tr><th>Ticket</th><th>Heure</th><th>Caissier</th><th>Montant</th><th>Paiement</th><th>Type</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +(top5.length?'<h2 style="font-size:.95rem;margin-top:1.5rem">Top Produits</h2><table><thead><tr><th>#</th><th>Produit</th><th>Qté</th><th>Recette</th></tr></thead><tbody>'+topRows+'</tbody></table>':'')
+    +'<div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd;font-size:.72rem;color:#aaa;text-align:center">'+CFG.name+' — Système de gestion The Mask</div>'
+    +'<div style="text-align:center;margin-top:1rem"><button onclick="window.print()" style="padding:.7rem 2rem;background:#d4af37;border:none;border-radius:6px;font-weight:bold;cursor:pointer">🖨️ Imprimer / PDF</button></div>'
+    +'</body></html>';
+  const w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else toast('Autorisez les pop-ups pour le PDF','er');
+}
 // ── Expose all functions to window (required for type="module" + inline onclick) ──
 Object.assign(window, {
   doLogin, doLogout, goTo,
@@ -1644,6 +1832,9 @@ Object.assign(window, {
   openAvoir, saveAvoir,
   updateStockAlertBadge, triggerStockAlert,
   requestNotifPermission,
+  renderUsers, togglePerm,
+  pinKey, pinClear, pinSubmit, showLoginScr,
+  saveMyPin, exportPDF,
   openM, closeM, toast
 });
 </script>
