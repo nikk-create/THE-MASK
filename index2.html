@@ -76,7 +76,7 @@ input,select{font-family:'Raleway',sans-serif}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;transition:var(--trans)}
 .card:hover{border-color:rgba(212,175,55,.15)}
 .card-title{font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cream-30);margin-bottom:1rem;font-family:'Cinzel',serif}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem;margin-bottom:1.75rem}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1.1rem;margin-bottom:1.75rem}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;position:relative;overflow:hidden;transition:var(--trans)}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);opacity:.5}
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-g);border-color:rgba(212,175,55,.25)}
@@ -257,7 +257,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
 .mob-toggle{display:none;position:fixed;top:.875rem;left:.875rem;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:.5rem .7rem;color:var(--gold);font-size:1.2rem}
 
 /* RESPONSIVE */
-@media(max-width:1100px){.stats-row{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}}
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}}
 @media(max-width:900px){.cashier-layout{grid-template-columns:1fr}.order-panel{position:static;max-height:none}}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none;box-shadow:8px 0 40px rgba(0,0,0,.8)}.mob-toggle{display:flex;align-items:center}.main{margin-left:0;padding:1rem;padding-top:4rem}.form-row{grid-template-columns:1fr}}
 @media(max-width:520px){.stats-row{grid-template-columns:1fr}.prod-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
@@ -370,6 +370,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
         <div class="nav-item" data-pg="products" onclick="goTo('products')"><span class="ni">&#128230;</span> Produits</div>
         <div class="nav-item" data-pg="expenses" onclick="goTo('expenses')"><span class="ni">&#128184;</span> D&#233;penses</div>
         <div class="nav-item" data-pg="history" onclick="goTo('history')"><span class="ni">&#128203;</span> Historique</div>
+        <div class="nav-item" data-pg="stock" onclick="goTo('stock')" id="nav-stock"><span class="ni">&#128230;</span> Stock <span id="stock-alert-badge" style="display:none;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;padding:.1rem .4rem;border-radius:20px;margin-left:.3rem">0</span></div>
         <div class="nav-item" data-pg="users" onclick="goTo('users')"><span class="ni">&#128100;</span> Utilisateurs</div>
         <div class="nav-item" data-pg="settings" onclick="goTo('settings')"><span class="ni">&#9881;&#65039;</span> Param&#232;tres</div>
       </div>
@@ -390,13 +391,28 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
     <div id="pg-dashboard" class="page">
       <div class="pg-head">
         <div><h1 class="pg-title">Tableau de Bord</h1><div class="pg-sub" id="today-date"></div></div>
-        <button class="btn btn-ghost" onclick="loadDashboard()">&#128260; Actualiser</button>
+        <div class="d-flex gap1 ai-c">
+          <div style="position:relative;cursor:pointer" onclick="goTo('stock')">
+            <button class="btn btn-ghost" style="padding:.6rem .875rem;font-size:1rem">&#128276;</button>
+            <span id="notif-bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:.58rem;font-weight:700;width:17px;height:17px;border-radius:50%;display:none;align-items:center;justify-content:center;border:2px solid var(--dark)" id="notif-bell-badge">0</span>
+          </div>
+          <button class="btn btn-ghost" onclick="loadDashboard()">&#128260; Actualiser</button>
+        </div>
+      </div>
+      <div id="dash-stock-alert" style="display:none;margin-bottom:1.25rem;padding:1rem 1.25rem;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.22);border-radius:var(--r);display:none">
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <span style="font-size:1.1rem">&#9888;&#65039;</span>
+          <span style="font-size:.85rem;font-weight:700;color:var(--err)">Alerte stock bas</span>
+          <span style="font-size:.82rem;color:var(--cream-60)" id="dash-stock-msg"></span>
+          <button class="btn btn-danger btn-sm" onclick="goTo('stock')" style="margin-left:auto">Voir le stock</button>
+        </div>
       </div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-icon">&#128176;</div><div class="stat-lbl">Ventes du Jour</div><div class="stat-val" id="s-sales">&#8212;</div><div class="stat-sub">Recettes totales</div></div>
         <div class="stat-card"><div class="stat-icon">&#128184;</div><div class="stat-lbl">D&#233;penses du Jour</div><div class="stat-val red" id="s-expenses">&#8212;</div><div class="stat-sub">Charges du jour</div></div>
         <div class="stat-card"><div class="stat-icon">&#128200;</div><div class="stat-lbl">B&#233;n&#233;fice Net</div><div class="stat-val" id="s-profit">&#8212;</div><div class="stat-sub">Recettes &#8722; D&#233;penses</div></div>
         <div class="stat-card"><div class="stat-icon">&#129534;</div><div class="stat-lbl">Transactions</div><div class="stat-val" id="s-txn">&#8212;</div><div class="stat-sub">Ventes enregistr&#233;es</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="goTo('stock')"><div class="stat-icon">&#128276;</div><div class="stat-lbl">Alertes Stock</div><div class="stat-val red" id="s-stock-alerts">0</div><div class="stat-sub">Produits &#8804; seuil</div></div>
       </div>
       <div class="dash-grid">
         <div class="card" style="padding:1.4rem"><div class="card-title">&#128197; Activit&#233; des 14 derniers jours</div><canvas id="chart-monthly" height="220"></canvas></div>
@@ -468,7 +484,7 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
         <div class="d-flex ai-c gap1"><label class="form-lbl" style="margin:0">Date :</label><input type="date" id="hist-filter" class="form-ctrl" style="width:auto" onchange="renderHistory()"/></div>
         <div class="d-flex gap2"><div class="card" style="padding:.65rem 1.1rem"><div class="sum-lbl">TRANSACTIONS</div><div class="sum-val" id="hist-count">&#8212;</div></div><div class="card" style="padding:.65rem 1.1rem"><div class="sum-lbl">TOTAL</div><div class="sum-val" id="hist-total">&#8212;</div></div></div>
       </div>
-      <div class="tbl-wrap"><table><thead><tr><th>N&#176; Ticket</th><th>Heure</th><th>Caissier</th><th>Montant</th><th>Paiement</th><th>D&#233;tail</th></tr></thead><tbody id="hist-tbody"></tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th>N&#176; Ticket</th><th>Heure</th><th>Caissier</th><th>Montant</th><th>Paiement</th><th>Type</th><th>Actions</th></tr></thead><tbody id="hist-tbody"></tbody></table></div>
     </div>
 
     <!-- USERS -->
@@ -573,10 +589,70 @@ tbody tr:hover{background:rgba(212,175,55,.025)}
         </div>
       </div>
     </div>
+    <!-- STOCK PAGE -->
+    <div id="pg-stock" class="page">
+      <div class="pg-head">
+        <div><h1 class="pg-title">Journal de Stock</h1><div class="pg-sub">Mouvements et alertes &#8212; visible administrateur uniquement</div></div>
+        <div class="d-flex gap1">
+          <button class="btn btn-ghost" onclick="renderStock()">&#128260; Actualiser</button>
+          <button class="btn btn-gold" onclick="openRestockModal()">+ R&#233;approvisionnement</button>
+        </div>
+      </div>
+      <div class="prod-stats-bar mb2" id="stock-summary-bar"></div>
+      <div class="dash-grid" style="margin-bottom:1.5rem">
+        <div class="card" style="padding:1.4rem">
+          <div class="card-title">&#128230; &#201;tat du Stock Actuel</div>
+          <div id="stock-products-list"></div>
+        </div>
+        <div class="card" style="padding:1.4rem">
+          <div class="card-title">&#128202; Mouvements R&#233;cents</div>
+          <div id="stock-movements-list" style="max-height:400px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
 <!-- MODALS -->
+<!-- AVOIR MODAL -->
+<div id="m-avoir" class="modal-ov hidden"><div class="modal" style="max-width:500px">
+  <div class="modal-head"><h2 style="font-size:1.1rem">&#128260; Cr&#233;er un Avoir</h2><button class="modal-close" onclick="closeM('m-avoir')">&#10005;</button></div>
+  <div style="padding:.875rem;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:var(--r-sm);margin-bottom:1.25rem">
+    <div style="font-size:.72rem;font-weight:700;color:var(--warn);margin-bottom:.3rem">&#9888;&#65039; Action r&#233;serv&#233;e &#224; l'administrateur</div>
+    <div style="font-size:.8rem;color:var(--cream-60);line-height:1.6">Un avoir est une correction comptable. Il cr&#233;e une nouvelle &#233;criture n&#233;gative li&#233;e &#224; la vente originale. La vente originale reste intacte dans l'historique.</div>
+  </div>
+  <input type="hidden" id="av-sale-id"/>
+  <div id="av-sale-recap" style="padding:.875rem;background:var(--elevated);border-radius:var(--r-sm);margin-bottom:1.1rem;font-size:.82rem"></div>
+  <div class="form-group">
+    <label class="form-lbl">Motif de l'avoir *</label>
+    <select id="av-motif" class="form-ctrl">
+      <option value="">Choisir...</option>
+      <option value="erreur_saisie">Erreur de saisie</option>
+      <option value="produit_non_servi">Produit non servi</option>
+      <option value="remboursement">Remboursement client</option>
+      <option value="erreur_prix">Erreur de prix</option>
+      <option value="autre">Autre</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-lbl">Montant &#224; annuler (FCFA) *</label>
+    <input type="number" id="av-amount" class="form-ctrl" placeholder="0" min="0"/>
+  </div>
+  <div class="form-group">
+    <label class="form-lbl">Note (optionnel)</label>
+    <input type="text" id="av-note" class="form-ctrl" placeholder="Ex: Client a refus&#233; la commande"/>
+  </div>
+  <div class="d-flex gap2 mt2"><button class="btn btn-ghost f1" onclick="closeM('m-avoir')">Annuler</button><button class="btn btn-danger f1" onclick="saveAvoir()">&#128260; Enregistrer l'Avoir</button></div>
+</div></div>
+
+<!-- RESTOCK MODAL -->
+<div id="m-restock" class="modal-ov hidden"><div class="modal" style="max-width:440px">
+  <div class="modal-head"><h2 style="font-size:1.1rem">&#128230; R&#233;approvisionnement</h2><button class="modal-close" onclick="closeM('m-restock')">&#10005;</button></div>
+  <div class="form-group"><label class="form-lbl">Produit *</label><select id="rs-product" class="form-ctrl"></select></div>
+  <div class="form-group"><label class="form-lbl">Quantit&#233; ajout&#233;e *</label><input type="number" id="rs-qty" class="form-ctrl" placeholder="Ex: 20" min="1"/></div>
+  <div class="form-group"><label class="form-lbl">Note</label><input type="text" id="rs-note" class="form-ctrl" placeholder="Ex: Livraison fournisseur"/></div>
+  <div class="d-flex gap2 mt2"><button class="btn btn-ghost f1" onclick="closeM('m-restock')">Annuler</button><button class="btn btn-gold f1" onclick="saveRestock()">&#128190; Enregistrer</button></div>
+</div></div>
 <div id="m-product" class="modal-ov hidden"><div class="modal">
   <div class="modal-head"><h2 style="font-size:1.1rem" id="pm-title">Nouveau Produit</h2><button class="modal-close" onclick="closeM('m-product')">&#10005;</button></div>
   <input type="hidden" id="pm-id"/>
@@ -676,7 +752,16 @@ async function bootstrapFromFirebase() {
 
   if (data.config) { Object.assign(CFG, data.config); }
 
+  if (data.avoirs) {
+    DB.avoirs = objToArr(data.avoirs).sort((a,b)=>b.id-a.id);
+    DB.nextAvoirId = Math.max(...DB.avoirs.map(a=>a.id), 0) + 1;
+  }
+  if (data.stock_movements) {
+    DB.stock_movements = objToArr(data.stock_movements).sort((a,b)=>b.id-a.id);
+    DB.nextMvtId = Math.max(...DB.stock_movements.map(m=>m.id), 0) + 1;
+  }
   toast('✅ Firebase synchronisé !', 'ok');
+  updateStockAlertBadge();
 }
 
 // Real-time listeners
@@ -709,6 +794,16 @@ function startListeners() {
   onValue(ref(db,'users'), snap => {
     DB.users = snap.val() ? objToArr(snap.val()) : [];
     if(S.currentPage==='users') renderUsers();
+  });
+  onValue(ref(db,'avoirs'), snap => {
+    DB.avoirs = snap.val() ? objToArr(snap.val()).sort((a,b)=>b.id-a.id) : [];
+    DB.nextAvoirId = Math.max(...DB.avoirs.map(a=>a.id),0)+1;
+    if(S.currentPage==='history') renderHistory();
+  });
+  onValue(ref(db,'stock_movements'), snap => {
+    DB.stock_movements = snap.val() ? objToArr(snap.val()).sort((a,b)=>b.id-a.id) : [];
+    DB.nextMvtId = Math.max(...DB.stock_movements.map(m=>m.id),0)+1;
+    if(S.currentPage==='stock') renderStock();
   });
 }
 
@@ -789,7 +884,9 @@ const DB={
     {id:3,cat:'achat_boissons',desc:'R\u00E9approvisionnement bi\u00E8res',amount:80000,date:yesterday,by:1},
     {id:4,cat:'gaz',desc:'Bouteilles gaz cuisine',amount:15000,date:yesterday,by:1}
   ],
-  nextSaleId:7,nextProdId:14,nextExpId:5,nextUserId:3
+  nextSaleId:7,nextProdId:14,nextExpId:5,nextUserId:3,nextAvoirId:1,nextMvtId:1,
+  avoirs:[],
+  stock_movements:[]
 };
 
 const EXP_CATS={electricite:'\u26A1 \u00C9lectricit\u00E9',gaz:'\u{1F525} Gaz',achat_boissons:'\u{1F37E} Achat Boissons',personnel:'\u{1F464} Personnel',loyer:'\u{1F3E0} Loyer',maintenance:'\u{1F527} Maintenance',autre:'\u{1F4E6} Autre'};
@@ -835,7 +932,7 @@ function goTo(pg){
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.pg===pg));
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   const t=document.getElementById('pg-'+pg);if(t)t.classList.add('active');
-  ({dashboard:loadDashboard,cashier:loadCashier,products:renderProducts,expenses:renderExpenses,history:renderHistory,users:renderUsers,settings:loadSettings}[pg]||(() => {}))();
+  ({dashboard:loadDashboard,cashier:loadCashier,products:renderProducts,expenses:renderExpenses,history:renderHistory,users:renderUsers,settings:loadSettings,stock:renderStock}[pg]||(() => {}))();
   document.getElementById('sidebar').classList.remove('open');
 }
 
@@ -865,6 +962,7 @@ function loadDashboard(){
   const dExp=days.map(d=>DB.expenses.filter(e=>e.date===d).reduce((a,e)=>a+e.amount,0));
   const ctx=document.getElementById('chart-monthly');
   if(S.chartInst){S.chartInst.destroy();S.chartInst=null;}
+  updateStockAlertBadge();
   if(ctx&&window.Chart)S.chartInst=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Ventes',data:dSales,backgroundColor:'rgba(212,175,55,.35)',borderColor:'#d4af37',borderWidth:1,borderRadius:4},{label:'D\u00E9penses',data:dExp,backgroundColor:'rgba(231,76,60,.25)',borderColor:'#e74c3c',borderWidth:1,borderRadius:4}]},options:{responsive:true,plugins:{legend:{labels:{color:'rgba(242,237,227,.55)',font:{family:'Raleway'}}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fc(c.raw)}}},scales:{x:{ticks:{color:'rgba(242,237,227,.4)',font:{size:10}},grid:{color:'rgba(255,255,255,.035)'}},y:{ticks:{color:'rgba(242,237,227,.4)',font:{size:10},callback:v=>fc(v)},grid:{color:'rgba(255,255,255,.035)'}}}}});
 }
 
@@ -1010,13 +1108,35 @@ async function delExpense(id){if(!confirm('Supprimer cette dépense ?'))return;a
 
 function renderHistory(){
   const filter=document.getElementById('hist-filter').value||today;
-  const sales=DB.sales.filter(s=>s.date===filter);
-  document.getElementById('hist-count').textContent=sales.length;
-  document.getElementById('hist-total').textContent=fc(sales.reduce((a,s)=>a+s.total,0));
+  const allTxn=[...DB.sales,...DB.avoirs].filter(s=>s.date===filter).sort((a,b)=>b.id-a.id);
+  const net=allTxn.reduce((a,s)=>a+s.total,0);
+  document.getElementById('hist-count').textContent=allTxn.length;
+  document.getElementById('hist-total').textContent=fc(net);
   const tb=document.getElementById('hist-tbody');
-  if(!sales.length){tb.innerHTML='<tr><td colspan="6" class="tc tm" style="padding:2rem">Aucune vente ce jour</td></tr>';return;}
-  tb.innerHTML=sales.map(s=>{const u=DB.users.find(x=>x.id===s.cashier);return'<tr><td style="font-family:monospace;font-size:.8rem">'+s.num+'</td><td class="tm">'+(s.time||'\u2014')+'</td><td>'+(u?u.name:'\u2014')+'</td><td class="tg fw7">'+fc(s.total)+'</td><td><span class="badge bi">'+(PAY[s.method]||s.method)+'</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewSale('+s.id+')">\u{1F441}\uFE0F Voir</button></td></tr>';}).join('');
+  if(!allTxn.length){tb.innerHTML='<tr><td colspan="7" class="tc tm" style="padding:2rem">Aucune transaction ce jour</td></tr>';return;}
+  const isAdmin=S.user&&S.user.role==='admin';
+  tb.innerHTML=allTxn.map(s=>{
+    const u=DB.users.find(x=>x.id===s.cashier);
+    const isAvoir=s.type==='avoir';
+    const typeBadge=isAvoir?'<span class="badge be">Avoir</span>':'<span class="badge bs">Vente</span>';
+    const montant=isAvoir?'<span class="ter fw7">'+fc(s.total)+'</span>':'<span class="tg fw7">'+fc(s.total)+'</span>';
+    const avoirBtn=(!isAvoir&&isAdmin)?'<button class="btn btn-ghost btn-sm" onclick="openAvoir('+s.id+')" title="Avoir">\u{1F504}</button>':'';
+    const existsAvoir=DB.avoirs.find(a=>a.saleRef===s.num);
+    const hasAvoir=existsAvoir?'<span class="badge bw" style="font-size:.62rem">\u{1F504} AV</span>':'';
+    return '<tr style="'+(isAvoir?'background:rgba(231,76,60,.04)':'')+'">'+
+      '<td style="font-family:monospace;font-size:.8rem">'+s.num+' '+hasAvoir+'</td>'+
+      '<td class="tm">'+(s.time||'\u2014')+'</td>'+
+      '<td>'+(u?u.name:'\u2014')+'</td>'+
+      '<td>'+montant+'</td>'+
+      '<td><span class="badge bi">'+(PAY[s.method]||s.method)+'</span></td>'+
+      '<td>'+typeBadge+'</td>'+
+      '<td><div class="d-flex gap1">'+
+        '<button class="btn btn-ghost btn-sm" onclick="viewSale('+s.id+',\''+(isAvoir?'avoir':'vente')+'\')">\U0001F441\uFE0F</button>'+
+        ((!isAvoir&&isAdmin&&!existsAvoir)?avoirBtn:'')+
+      '</div></td></tr>';
+  }).join('');
 }
+
 function viewSale(id){
   const s=DB.sales.find(x=>x.id===id);if(!s)return;
   const u=DB.users.find(x=>x.id===s.cashier);
@@ -1045,7 +1165,7 @@ async function toggleUser(id){const u=DB.users.find(x=>x.id===id);if(u){u.active
 // =============================================
 const ICON_SET = ['🥤','🍽️','🍾','🥂','✨','🍕','🍔','🌮','🥗','🧁','☕','🍵','🧃','🫖','🥩','🐟','🦐','🥦','🍺','🍻','🥃','🍷','🍸','🍹','🎂','🍰','🧆','🥘','🍜','🎭','💎','🌟','🔥','⚡','🎪','🎨','🎵','🏆','💫','🍫'];
 
-const CFG = { name: 'The Mask', city: 'Cotonou', phone: '', currency: 'FCFA' };
+const CFG = { name: 'The Mask', city: 'Cotonou', phone: '', currency: 'FCFA', stockSeuil: 10 };
 
 
 
@@ -1292,6 +1412,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('em-date').value     = today;
   document.getElementById('l-pwd').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
   document.getElementById('l-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  requestNotifPermission();
 
   // Firebase is already initialized via the module script above.
   // Wait for the 'fb-ready' event (or check immediately if already fired).
@@ -1339,6 +1460,172 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+// ═══════════════════════════════════════════════════════════════
+// STOCK JOURNAL & RESTOCK
+// ═══════════════════════════════════════════════════════════════
+function renderStock(){
+  const prods=DB.products.filter(p=>p.active!==false);
+  const alerts=prods.filter(p=>p.stock<=CFG.stockSeuil);
+  const rupture=prods.filter(p=>p.stock===0);
+  const bar=document.getElementById('stock-summary-bar');
+  if(bar) bar.innerHTML=
+    '<div class="psb-item"><div class="psb-icon">\u{1F4E6}</div><div><div class="psb-name">Total produits</div><div class="psb-count">'+prods.length+'</div></div></div>'+
+    '<div class="psb-item '+(alerts.length?'psb-active':'')+'"><div class="psb-icon">\u26A0\uFE0F</div><div><div class="psb-name">Alerte (\u2264'+CFG.stockSeuil+')</div><div class="psb-count" style="color:'+(alerts.length?'var(--warn)':'var(--ok)')+'">'+alerts.length+'</div></div></div>'+
+    '<div class="psb-item '+(rupture.length?'psb-active':'')+'"><div class="psb-icon">\u26D4</div><div><div class="psb-name">Rupture</div><div class="psb-count" style="color:'+(rupture.length?'var(--err)':'var(--ok)')+'">'+rupture.length+'</div></div></div>';
+  const pl=document.getElementById('stock-products-list');
+  if(pl){
+    const sorted=[...prods].sort((a,b)=>a.stock-b.stock);
+    pl.innerHTML=sorted.map(p=>{
+      const pct=Math.min(100,Math.round((p.stock/Math.max(p.stock+20,1))*100));
+      const col=p.stock===0?'var(--err)':p.stock<=CFG.stockSeuil?'var(--warn)':'var(--ok)';
+      const chip=p.stock===0?'<span class="badge be">\u26D4 Rupture</span>':p.stock<=CFG.stockSeuil?'<span class="badge bw">\u26A0\uFE0F Bas</span>':'';
+      return '<div style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+        '<span style="font-size:1.1rem">'+(CAT_ICONS[p.cat]||'\u{1F4E6}')+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+'</div>'+
+          '<div style="height:4px;background:var(--border);border-radius:4px;margin-top:.3rem;overflow:hidden">'+
+            '<div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:4px"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0">'+
+          '<div style="font-size:.85rem;font-weight:700;color:'+col+'">'+p.stock+' '+p.unit+'</div>'+
+          chip+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  const ml=document.getElementById('stock-movements-list');
+  if(ml){
+    const mvts=[...DB.stock_movements].slice(0,60);
+    if(!mvts.length){ml.innerHTML='<div class="empty-state"><div class="ei">\u{1F4CA}</div><p>Aucun mouvement</p></div>';return;}
+    ml.innerHTML=mvts.map(m=>{
+      const u=DB.users.find(x=>x.id===m.by);
+      const isPos=m.qty>0;
+      const icon=m.type==='vente'?'\u{1F6D2}':m.type==='restock'?'\u{1F4E6}':'\u{1F504}';
+      return '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.04)">'+
+        '<span style="font-size:1rem;width:22px;text-align:center">'+icon+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:.82rem;font-weight:600">'+m.prodName+'</div>'+
+          '<div style="font-size:.7rem;color:var(--cream-30)">'+(m.ref||'')+' \u2022 '+(u?u.name:'\u2014')+' \u2022 '+(m.time||'')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;flex-shrink:0">'+
+          '<div style="font-size:.85rem;font-weight:700;color:'+(isPos?'var(--ok)':'var(--err)')+'">'+( isPos?'+':'')+m.qty+'</div>'+
+          '<div style="font-size:.68rem;color:var(--cream-30)">'+m.stockBefore+'\u2192'+m.stockAfter+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+}
+
+function openRestockModal(){
+  const sel=document.getElementById('rs-product');
+  sel.innerHTML=DB.products.filter(p=>p.active!==false)
+    .map(p=>'<option value="'+p.id+'">'+(CAT_ICONS[p.cat]||'')+' '+p.name+' (stock: '+p.stock+')</option>').join('');
+  document.getElementById('rs-qty').value='';
+  document.getElementById('rs-note').value='';
+  openM('m-restock');
+}
+
+async function saveRestock(){
+  const pid=parseInt(document.getElementById('rs-product').value);
+  const qty=parseInt(document.getElementById('rs-qty').value);
+  const note=document.getElementById('rs-note').value.trim();
+  if(!pid||!qty||qty<1){toast('Produit et quantit\u00e9 requis','er');return;}
+  const p=DB.products.find(x=>x.id===pid);if(!p)return;
+  const before=p.stock;
+  p.stock+=qty;
+  await fbUpdate('products',p.id,{stock:p.stock});
+  const mvt={id:DB.nextMvtId++,type:'restock',prodId:p.id,prodName:p.name,
+    qty,stockBefore:before,stockAfter:p.stock,ref:'RESTOCK',note,by:S.user.id,date:today,
+    time:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})};
+  DB.stock_movements.unshift(mvt);
+  await fbSet('stock_movements',mvt.id,mvt);
+  toast('\u{1F4E6} '+p.name+' : +'+qty+' unit\u00e9s','ok');
+  closeM('m-restock');renderStock();updateStockAlertBadge();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AVOIR
+// ═══════════════════════════════════════════════════════════════
+function openAvoir(saleId){
+  if(!S.user||S.user.role!=='admin'){toast('R\u00e9serv\u00e9 \u00e0 l\'administrateur','er');return;}
+  const sale=DB.sales.find(s=>s.id===saleId);if(!sale)return;
+  const exists=DB.avoirs.find(a=>a.saleRef===sale.num);
+  if(exists){toast('Un avoir existe d\u00e9j\u00e0 pour cette vente','er');return;}
+  document.getElementById('av-sale-id').value=saleId;
+  document.getElementById('av-amount').value=sale.total;
+  document.getElementById('av-motif').value='';
+  document.getElementById('av-note').value='';
+  document.getElementById('av-sale-recap').innerHTML=
+    '<div style="font-size:.72rem;color:var(--cream-30);margin-bottom:.4rem">Vente li\u00e9e</div>'+
+    '<div style="font-weight:700">'+sale.num+'</div>'+
+    '<div style="font-size:.82rem;color:var(--cream-60);margin-top:.2rem">'+sale.items.map(i=>i.qty+'x '+i.name).join(', ')+'</div>'+
+    '<div style="font-family:\'Cinzel\',serif;font-size:1rem;color:var(--gold);margin-top:.4rem">'+fc(sale.total)+'</div>';
+  openM('m-avoir');
+}
+
+async function saveAvoir(){
+  const saleId=parseInt(document.getElementById('av-sale-id').value);
+  const motif=document.getElementById('av-motif').value;
+  const amount=parseFloat(document.getElementById('av-amount').value);
+  const note=document.getElementById('av-note').value.trim();
+  if(!motif||!amount){toast('Motif et montant requis','er');return;}
+  const sale=DB.sales.find(s=>s.id===saleId);if(!sale)return;
+  if(amount>sale.total){toast('Montant sup\u00e9rieur \u00e0 la vente','er');return;}
+  const num='AV-'+String(DB.nextAvoirId).padStart(3,'0');
+  const avoir={id:DB.nextAvoirId++,num,saleRef:sale.num,cashier:S.user.id,
+    total:-amount,method:sale.method,date:today,motif,note,type:'avoir',
+    items:[{name:'Avoir sur '+sale.num,qty:1,up:-amount,sub:-amount}],
+    time:new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})};
+  DB.avoirs.unshift(avoir);
+  await fbSet('avoirs',avoir.id,avoir);
+  closeM('m-avoir');
+  toast('\u{1F504} Avoir '+num+' enregistr\u00e9 sur '+sale.num,'ok');
+  renderHistory();
+  if(S.currentPage==='dashboard') loadDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTIFICATIONS STOCK
+// ═══════════════════════════════════════════════════════════════
+let _notifPermission=false;
+async function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){_notifPermission=true;return;}
+  if(Notification.permission!=='denied'){
+    const p=await Notification.requestPermission();
+    _notifPermission=(p==='granted');
+  }
+}
+function triggerStockAlert(product){
+  const msg=product.stock===0
+    ?'\u26D4 Rupture : '+product.name
+    :'\u26A0\uFE0F Stock bas : '+product.name+' ('+product.stock+' '+product.unit+' restants)';
+  toast(msg,product.stock===0?'er':'info');
+  if(_notifPermission&&Notification.permission==='granted'){
+    new Notification('\U0001f3ad The Mask \u2014 Alerte Stock',{body:msg});
+  }
+}
+function updateStockAlertBadge(){
+  const alerts=DB.products.filter(p=>p.active!==false&&p.stock<=CFG.stockSeuil);
+  const n=alerts.length;
+  const sb=document.getElementById('stock-alert-badge');
+  if(sb){sb.style.display=n?'inline':'none';sb.textContent=n;}
+  const bell=document.getElementById('notif-bell-badge');
+  if(bell){bell.style.display=n?'flex':'none';bell.textContent=n;}
+  const sc=document.getElementById('s-stock-alerts');
+  if(sc){sc.textContent=n;sc.className='stat-val '+(n>0?'red':'green');}
+  const banner=document.getElementById('dash-stock-alert');
+  const msg=document.getElementById('dash-stock-msg');
+  if(banner){
+    if(n>0){
+      banner.style.display='flex';
+      if(msg) msg.textContent=alerts.slice(0,3).map(p=>p.name+' ('+p.stock+')').join(', ')+(alerts.length>3?' +'+( alerts.length-3)+' autres':'');
+    } else { banner.style.display='none'; }
+  }
+}
+
 // ── Expose all functions to window (required for type="module" + inline onclick) ──
 Object.assign(window, {
   doLogin, doLogout, goTo,
@@ -1353,6 +1640,10 @@ Object.assign(window, {
   editCat, saveCat, delCat, updateCatSelect,
   confirmReset, doReset,
   saveCredentials, togglePwd, renderCredRecap,
+  renderStock, openRestockModal, saveRestock,
+  openAvoir, saveAvoir,
+  updateStockAlertBadge, triggerStockAlert,
+  requestNotifPermission,
   openM, closeM, toast
 });
 </script>
